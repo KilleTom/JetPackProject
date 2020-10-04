@@ -5,7 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.NavHostFragment.findNavController
+import androidx.navigation.fragment.findNavController
 import com.killeTom.navigation.R
 import kotlinx.android.synthetic.main.nav_demo_fragment_a.view.*
 
@@ -20,7 +21,8 @@ class NavDemoFragmentA : Fragment() {
 
         view.nav_action.setOnClickListener {
 
-            NavHostFragment.findNavController(this).navigate(R.id.action_fragmentA_to_fragmentB)
+            findNavController().navigate(R.id.action_fragmentA_to_fragmentB)
+//            Fragment.findNavController(this).navigate(R.id.action_fragmentA_to_fragmentB)
         }
 
         return view

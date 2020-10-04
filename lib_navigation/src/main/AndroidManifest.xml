@@ -3,7 +3,7 @@
     package="com.killeTom.navigation">
 
     <application>
-        <activity android:name=".NavigationDemoActivity"></activity>
+        <activity android:name=".NavigationDemoActivity"/>
     </application>
 
 </manifest>
