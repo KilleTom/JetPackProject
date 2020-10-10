@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.NavHostFragment.findNavController
 import androidx.navigation.fragment.findNavController
@@ -21,7 +22,10 @@ class NavDemoFragmentA : Fragment() {
 
         view.nav_action.setOnClickListener {
 
-            findNavController().navigate(R.id.action_fragmentA_to_fragmentB)
+            var bundle: Bundle = bundleOf("value" to "hello")
+
+            findNavController()
+                .navigate(R.id.action_fragmentA_to_fragmentB,bundle)
 //            Fragment.findNavController(this).navigate(R.id.action_fragmentA_to_fragmentB)
         }
 

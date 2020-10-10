@@ -24,6 +24,10 @@ class NavDemoFragmentB :Fragment() {
             NavHostFragment.findNavController(this).navigate(R.id.action_fragmentB_to_fragmentC)
         }
 
+        var message = arguments?.getString("value")?: view.nav_action.text
+
+        view.nav_action.text = message
+
         return view
     }
 }

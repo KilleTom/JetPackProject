@@ -1,17 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext.kotlin_version = "1.4.0"
-    repositories {
-        google()
-        jcenter()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:4.0.1"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-    }
 
     ext.androidx_room = 'androidx.room:room-runtime:2.2.4'
     ext.androidx_room_kapt = 'androidx.room:room-compiler:2.2.5'
@@ -26,6 +15,21 @@ buildscript {
 
     ext.androidx_dynamic_features_fragment="androidx.navigation:navigation-dynamic-features-fragment:$androidx_navigation_version"
     ext.androidx_navigation_testing="androidx.navigation:navigation-testing:$androidx_navigation_version"
+
+    
+    repositories {
+        google()
+        jcenter()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:4.0.1"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$androidx_navigation_version"
+
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+
 
 
 }

@@ -120,12 +120,121 @@
    
    </androidx.constraintlayout.widget.ConstraintLayout>
    ```
-   
+
    通过这样的引用就实现出 A -> B -> C -> A 这样一个fragment切换显示的顺序。
 
-3. fragment值传递的实现方式
+   
 
-4. 常见的一些错误信息
+3. 利用navigation对fragment进行跳转
+
+   下面将以NavDemoFragmentA跳转到NavDemoFragmentB为示例
+
+   ```kotlin
+   class NavDemoFragmentA : Fragment() {
+   
+       override fun onCreateView(
+           inflater: LayoutInflater,
+           container: ViewGroup?,
+           savedInstanceState: Bundle?
+       ): View? {
+           val view = inflater.inflate(R.layout.nav_demo_fragment_a, container, false)
+   
+           view.nav_action.setOnClickListener {
+   			//通过利用findNavController获取导航控制器，然后指向配置文件中的actionId进行控制跳转
+               findNavController().navigate(R.id.action_fragmentA_to_fragmentB)
+           }
+   
+           return view
+       }
+   
+   
+   }
+   ```
+
+   
+
+4. 利用navigation对fragment进行值传递跳转
+
+   navigation值传递分为`Bundle`、`safeargs`两种以下针对这两种方式分别讲解
+
+   1. 利用`Bundle`进行值传递
+
+      Bundle传值在于构建出一个Bundle对象，在里面存放数据，然后通过调用navigate时，将Bundle传入
+
+      譬如：NavDemoFragmentA跳转到NavDemoFragmentB时将一个 hello 字符串传递
+
+      ```kotlin
+      class NavDemoFragmentA : Fragment() {
+      
+          override fun onCreateView(
+              inflater: LayoutInflater,
+              container: ViewGroup?,
+              savedInstanceState: Bundle?
+          ): View? {
+              val view = inflater.inflate(R.layout.nav_demo_fragment_a, container, false)
+      
+              view.nav_action.setOnClickListener {
+      			
+                  var bundle: Bundle = bundleOf("value" to "hello")
+                  
+                  findNavController()
+                  .navigate(R.id.action_fragmentA_to_fragmentB,bundle)
+                  
+              }
+      
+              return view
+          }
+      
+      }
+      
+      
+      class NavDemoFragmentB :Fragment() {
+      
+          override fun onCreateView(
+              inflater: LayoutInflater,
+              container: ViewGroup?,
+              savedInstanceState: Bundle?
+          ): View? {
+              val view =  inflater.inflate(R.layout.nav_demo_fragment_b, container, false)
+      
+              //取值
+              var message = arguments?.getString("value")?: view.nav_action.text
+              
+              view.nav_action.text = message
+      
+              return view
+          }
+      }
+      ```
+
+       
+
+   2. 利用`safeargs`进行类型安全值传递
+
+      利用`safeargs`首先得在gralde文件中配置：
+
+      ```groovy
+      buildscript {
+          repositories {
+              google()
+          }
+          dependencies {
+              def nav_version = "2.3.0"
+              classpath "androidx.navigation:navigation-safe-args-gradle-plugin:$nav_version"
+          }
+      }
+      ```
+
+      然后在需要使用`navigation`的模块的gradle文件中添加如下配置
+
+      ```groovy
+      apply plugin: "androidx.navigation.safeargs"
+      apply plugin: "androidx.navigation.safeargs.kotlin"
+      ```
+
+      到此`safeargs`环境配置则已经完成紧接着我们以 NavDemoFragmentB 到 NavDemoFragmentC 为例子演示应该如何使用`safeargs`进行安全的值传递
+
+5. 常见的一些错误信息
 
    
 
