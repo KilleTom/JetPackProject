@@ -16,6 +16,8 @@
             android:id="@+id/action_fragmentA_to_fragmentB"
             app:destination="@id/fragmentB"
             app:exitAnim="@android:anim/slide_out_right" />
+
+
     </fragment>
 
     <fragment
