@@ -324,13 +324,9 @@
           ): View? {
               //省略部分不相干代码
       
-              //构建budle
-                  val bundle = bundleOf(
-                      "message" to "ok",
-                      "result" to true
-                  )
-      		//利用bundle 构建出对应的 Args
-                  val args = NavDemoFragmentCArgs.fromBundle(bundle)
+              //构建NavArgs
+              val args = NavDemoFragmentCArgs("ok",true)
+              
               //利用args 获取结果bundle 并作为值传递过去
               	NavHostFragment.findNavController(this)
               			.navigate(R.id.action_fragmentC_to_fragmentA,args.toBundle())
@@ -338,6 +334,26 @@
               //省略部分不相干代码
           }
           
+      }
+      
+      class NavDemoFragmentA : Fragment() {
+      
+       
+          override fun onResume() {
+              super.onResume()
+      
+              resultAction()
+          }
+      
+          //取值
+          private fun resultAction(){
+              val bundle = arguments?:return
+      
+              val args = NavDemoFragmentCArgs.fromBundle(bundle)
+      
+              Log.i(this::class.java.simpleName,args.toString())
+      
+          }
       }
       ```
       
@@ -347,9 +363,47 @@
 
    针对一些场景操作导致的常见错误，以下将会进行一些讲解分析。
    
+   1. 当前Activity静态配置，但是启动当前Activity 出现了 `android.view.InflateException`  可能存在以下几个因素
+   
+      - navigation配置文件没有设置`startDestination`,因为静态配置必须配置`startDestination`属性否则将无法感知到默认显示的`fragment`是哪一个
+   
+      - 当前Activity对应的布局中<fragment>并没有使用`name`属性导致无法正常引用布局文件
+   
+   2. 静态配置中无法正常导航出现了 `does not have a NavController`相关提示错误信息出现场景的错误代码示例如下:
+   ```kotlin
+      <?xml version="1.0" encoding="utf-8"?>
+      <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+          tools:context=".NavigationDemoActivity">
+          
+          <fragment
+              android:id="@+id/nav_demo"
+              android:name="com.killeTom.navigation.fragment.NavDemoFragmentA"
+              android:layout_width="0dp"
+              android:layout_height="0dp"
+              app:navGraph="@navigation/lib_navigation_demo_nav"
+              app:defaultNavHost="true"
+              app:layout_constraintStart_toStartOf="parent"
+              app:layout_constraintEnd_toEndOf="parent"
+              app:layout_constraintTop_toTopOf="parent"
+              app:layout_constraintBottom_toBottomOf="parent"/>
+      
+      </androidx.constraintlayout.widget.ConstraintLayout>
+   ```
+    针对上诉代码，第一次启动往往是能够正常启动的，并且能够显示出首个fragment但是首个fragment可能与配置文件中的默认显示不一样，具体的第一次显示fragment取`name`属性对应的fragment。
+   
+   为什么会出现`does not have a NavController`错误提示呢？原因简单在于`name`属性对应的fragment并没有实现对应的`NavController`逻辑，导致无法找到这个对象，无法实现出导航逻辑。
+   
+   因此没有特殊需求，其实我们直接将`name`属性对应`androidx.navigation.fragment.NavHostFragment`
+   
    
 
 ## Navigation 原理解析
+
+针对前一节的基本使用，以下将会讲解一些对应的原理分析：
 
 
 

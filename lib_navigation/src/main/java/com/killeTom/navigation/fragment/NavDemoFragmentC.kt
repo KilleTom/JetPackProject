@@ -23,13 +23,7 @@ class NavDemoFragmentC :Fragment() {
 
         view.nav_action.setOnClickListener {
 
-            val bundle = bundleOf(
-                "message" to "ok",
-                "result" to true
-            )
-
-            val args = NavDemoFragmentCArgs.fromBundle(bundle)
-
+            val args = NavDemoFragmentCArgs("ok",true)
 
             NavHostFragment.findNavController(this).navigate(R.id.action_fragmentC_to_fragmentA,args.toBundle())
         }

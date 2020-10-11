@@ -1,6 +1,7 @@
 package com.killeTom.navigation.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,4 +34,18 @@ class NavDemoFragmentA : Fragment() {
     }
 
 
+    override fun onResume() {
+        super.onResume()
+
+        resultAction()
+    }
+
+    private fun resultAction(){
+        val bundle = arguments?:return
+
+        val args = NavDemoFragmentCArgs.fromBundle(bundle)
+
+        Log.i(this::class.java.simpleName,args.toString())
+
+    }
 }
