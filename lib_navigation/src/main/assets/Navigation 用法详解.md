@@ -227,11 +227,18 @@
 
       然后在需要使用`navigation`的模块的gradle文件中添加如下配置
 
+      注意当项目完全为Java时请使用这一配置
+      
       ```groovy
       apply plugin: "androidx.navigation.safeargs"
+   ```
+      
+      如果支持kotlin时请使用这一配置
+      
+      ```groovy
       apply plugin: "androidx.navigation.safeargs.kotlin"
       ```
-
+      
       到此`safeargs`环境配置则已经完成紧接着我们以 NavDemoFragmentC 到 NavDemoFragmentA 为例子演示应该如何使用`safeargs`进行安全的值传递,
       
       首先将为`lib_navigation_demo_nav` C 到 A 的配置代码修改为
@@ -405,11 +412,57 @@
 
 针对前一节的基本使用，以下将会讲解一些对应的原理分析：
 
+`NavHostFragment`基于`fragment`以及`NavHost`接口的实现。
 
+1. 为什么静态配置能够启动默认fragment？
+
+   在`NavHostFragment`部分源码中，通过这样的一个方式启动默认的fragment
+
+   ```java
+     @CallSuper
+       @Override
+       public void onCreate(@Nullable Bundle savedInstanceState) {
+           super.onCreate(savedInstanceState);
+           final Context context = requireContext();
+   
+           mNavController = new NavHostController(context);
+           
+   
+           Bundle navState = null;
+           //通过判断设置相关的导航配置文件
+           if (mGraphId != 0) {
+               // Set from onInflate()
+               mNavController.setGraph(mGraphId);
+           } else {
+               // See if it was set by NavHostFragment.create()
+               final Bundle args = getArguments();
+               final int graphId = args != null ? args.getInt(KEY_GRAPH_ID) : 0;
+               //当设别到存在默认的fragment的时候通过navController去显示默认的fragment
+               final Bundle startDestinationArgs = args != null
+                       ? args.getBundle(KEY_START_DESTINATION_ARGS)
+                       : null;
+               if (graphId != 0) {
+                   mNavController.setGraph(graphId, startDestinationArgs);
+               }
+           }
+       }
+   
+   ```
+
+   
+
+2. NavController的作用？
+
+   NavController负责管理App的Navigation，其内部实现了对fragment的堆栈以及生命周期的感知管理，并且监听手机后退键的事件触发等一系列操作。
+
+   例如：
+
+   - 通过`LifecycleOwner`以及`LifecycleObserver`实现生命周期的感知以及观察
+   - 通过`OnBackPressedCallback`分发后退键触发事件
+   - `NavigatorProvider`代理管理导航操作
 
 ## 总结
+navigation 静态配置的使用时需要注意，name属性应该指向哪个`fragment`、以及navigation配置文件中`startDestination`的是否漏写。
+理解为什么`NavHostFragment`为什么能够达到导航功能，因为其内部持有了`NavController`以及`NavController`实现了一些对生命周期感知以及监测一些事件等操作。
 
-
-```
-
-```
+navigation可以通过`Bundle`、`safeargs`这两种方式的传值。其中`safeargs`方式还需要对项目进行额外的配置。
