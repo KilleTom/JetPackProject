@@ -21,6 +21,7 @@ class NavDemoFragmentB :Fragment() {
 
         view.nav_action.setOnClickListener {
 
+
             NavHostFragment.findNavController(this).navigate(R.id.action_fragmentB_to_fragmentC)
         }
 

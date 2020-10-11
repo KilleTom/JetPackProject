@@ -232,10 +232,121 @@
       apply plugin: "androidx.navigation.safeargs.kotlin"
       ```
 
-      到此`safeargs`环境配置则已经完成紧接着我们以 NavDemoFragmentB 到 NavDemoFragmentC 为例子演示应该如何使用`safeargs`进行安全的值传递
+      到此`safeargs`环境配置则已经完成紧接着我们以 NavDemoFragmentC 到 NavDemoFragmentA 为例子演示应该如何使用`safeargs`进行安全的值传递,
+      
+      首先将为`lib_navigation_demo_nav` C 到 A 的配置代码修改为
+      
+      ```xml
+      <?xml version="1.0" encoding="utf-8"?>
+      <navigation xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:app="http://schemas.android.com/apk/res-auto"
+          xmlns:tools="http://schemas.android.com/tools"
+          android:id="@+id/lib_navigation_demo_nav"
+          app:startDestination="@id/fragmentA"
+          tools:ignore="UnusedNavigation">
+      
+         <--!-->......</--!-->
+      
+           <--!-->......</--!-->
+      
+          <fragment
+              android:id="@+id/fragmentC"
+              android:name="com.killeTom.navigation.fragment.NavDemoFragmentC"
+              android:label="fragmentC"
+              tools:layout="@layout/nav_demo_fragment_c">
+      
+              <action
+                  android:id="@+id/action_fragmentC_to_fragmentA"
+                  app:destination="@id/fragmentA"
+                  app:exitAnim="@android:anim/slide_out_right" />
+      
+              <argument android:name="message"
+                  android:defaultValue=""
+                  app:argType="string"/>
+      
+              <argument android:name="result"
+                  app:argType="boolean"
+                  android:defaultValue="false"/>
+      
+      
+          </fragment>
+      </navigation>
+      ```
+      
+      然后查看下是否能够动态生成相应的Args代码，譬如这里示例代码对应为`NavDemoFragmentCArgs`文件。注意如果没有及时动态生成，重新 build 构建当前模块尝试生成即可。
+      
+      ```kotlin
+      data class NavDemoFragmentCArgs(
+        val message: String = "",
+        val result: Boolean = false
+      ) : NavArgs {
+        fun toBundle(): Bundle {
+          val result = Bundle()
+          result.putString("message", this.message)
+          result.putBoolean("result", this.result)
+          return result
+        }
+      
+        companion object {
+          @JvmStatic
+          fun fromBundle(bundle: Bundle): NavDemoFragmentCArgs {
+            bundle.setClassLoader(NavDemoFragmentCArgs::class.java.classLoader)
+            val __message : String?
+            if (bundle.containsKey("message")) {
+              __message = bundle.getString("message")
+              if (__message == null) {
+                throw IllegalArgumentException("Argument \"message\" is marked as non-null but was passed a null value.")
+              }
+            } else {
+              __message = ""
+            }
+            val __result : Boolean
+            if (bundle.containsKey("result")) {
+              __result = bundle.getBoolean("result")
+            } else {
+              __result = false
+            }
+            return NavDemoFragmentCArgs(__message, __result)
+          }
+        }
+      }
+      ```
+      
+       当对应的文件生成后，我们可以这样使用达到一个值类型安全传递的效果：
+      
+      ```kotlin
+      class NavDemoFragmentC :Fragment() {
+      
+          override fun onCreateView(
+              inflater: LayoutInflater,
+              container: ViewGroup?,
+              savedInstanceState: Bundle?
+          ): View? {
+              //省略部分不相干代码
+      
+              //构建budle
+                  val bundle = bundleOf(
+                      "message" to "ok",
+                      "result" to true
+                  )
+      		//利用bundle 构建出对应的 Args
+                  val args = NavDemoFragmentCArgs.fromBundle(bundle)
+              //利用args 获取结果bundle 并作为值传递过去
+              	NavHostFragment.findNavController(this)
+              			.navigate(R.id.action_fragmentC_to_fragmentA,args.toBundle())
+              
+              //省略部分不相干代码
+          }
+          
+      }
+      ```
+      
+      
 
 5. 常见的一些错误信息
 
+   针对一些场景操作导致的常见错误，以下将会进行一些讲解分析。
+   
    
 
 ## Navigation 原理解析

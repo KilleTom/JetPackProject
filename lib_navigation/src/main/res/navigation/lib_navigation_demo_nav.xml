@@ -37,9 +37,20 @@
         android:name="com.killeTom.navigation.fragment.NavDemoFragmentC"
         android:label="fragmentC"
         tools:layout="@layout/nav_demo_fragment_c">
+
         <action
             android:id="@+id/action_fragmentC_to_fragmentA"
             app:destination="@id/fragmentA"
             app:exitAnim="@android:anim/slide_out_right" />
+
+        <argument android:name="message"
+            android:defaultValue=""
+            app:argType="string"/>
+
+        <argument android:name="result"
+            app:argType="boolean"
+            android:defaultValue="false"/>
+
+
     </fragment>
 </navigation>
