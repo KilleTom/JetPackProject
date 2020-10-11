@@ -93,7 +93,7 @@
       </navigation>
    ```
       其视图预览如下图：
-      ![](D:\StudyProject\Android\JetPack\lib_navigation\src\main\assets\QQ截图20201002124556.png)
+      ![](.\QQ截图20201002124556.png)
 
 2. 在`Activity`对应的xml文件引用`navigation`
 
