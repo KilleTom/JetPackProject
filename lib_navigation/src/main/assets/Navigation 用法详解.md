@@ -567,3 +567,7 @@ navigation 静态配置的使用时需要注意，name属性应该指向哪个`f
 理解为什么`NavHostFragment`为什么能够达到导航功能，因为其内部持有了`NavController`以及`NavController`实现了一些对生命周期感知以及监测一些事件等操作。
 
 navigation可以通过`Bundle`、`safeargs`这两种方式的传值。其中`safeargs`方式还需要对项目进行额外的配置。
+
+大致思路如下图：
+
+![](.\Navigation.png)
