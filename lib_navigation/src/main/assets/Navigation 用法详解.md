@@ -232,18 +232,19 @@
       ```groovy
       apply plugin: "androidx.navigation.safeargs"
       ```
-    
+
       
       如果支持kotlin时请使用这一配置
       
       ```groovy
       apply plugin: "androidx.navigation.safeargs.kotlin"
+      ```
     ```
-
+   
       到此`safeargs`环境配置则已经完成紧接着我们以 NavDemoFragmentC 到 NavDemoFragmentA 为例子演示应该如何使用`safeargs`进行安全的值传递,
-
+   
       首先将为`lib_navigation_demo_nav` C 到 A 的配置代码修改为
-
+   
       ```xml
       <?xml version="1.0" encoding="utf-8"?>
       <navigation xmlns:android="http://schemas.android.com/apk/res/android"
@@ -279,7 +280,7 @@
       
           </fragment>
       </navigation>
-      ```
+    ```
 
       然后查看下是否能够动态生成相应的Args代码，譬如这里示例代码对应为`NavDemoFragmentCArgs`文件。注意如果没有及时动态生成，重新 build 构建当前模块尝试生成即可。
 
@@ -452,21 +453,114 @@
 
    
 
-2. NavController的作用？
+2. NavController的作用
 
    NavController负责管理App的Navigation，其内部实现了对fragment的堆栈以及生命周期的感知管理，并且监听手机后退键的事件触发等一系列操作。
 
-   例如：
-   
-   - ``
+   Navigation实现导航的核心原理在于对`NavController`的实现，而`findNavController()`是`NavHostFragment`暴露提供出来的方法目的在于获取`NavController`。
 
-   - 通过`LifecycleOwner`以及`LifecycleObserver`实现生命周期的感知以及观察
+   `navigate`核心方法解析:
+
+   ```kotlin
+      public void navigate(@IdRes int resId, @Nullable Bundle args, @Nullable NavOptions navOptions,
+               @Nullable Navigator.Extras navigatorExtras) {
+          
+          //获取fragment的堆栈节点管理
+           NavDestination currentNode = mBackStack.isEmpty()
+                   ? mGraph
+                   : mBackStack.getLast().getDestination();
+           if (currentNode == null) {
+               throw new IllegalStateException("no current navigation node");
+           }
+           @IdRes int destId = resId;
+          //解析静态的配置文件获取当前相关的导航动作
+           final NavAction navAction = currentNode.getAction(resId);
+          //利用bundle构建传参
+           Bundle combinedArgs = null;
+           if (navAction != null) {
+               if (navOptions == null) {
+                   navOptions = navAction.getNavOptions();
+               }
+               destId = navAction.getDestinationId();
+               Bundle navActionArgs = navAction.getDefaultArguments();
+               if (navActionArgs != null) {
+                   combinedArgs = new Bundle();
+                   combinedArgs.putAll(navActionArgs);
+               }
+           }
    
-   - 通过`OnBackPressedCallback`分发后退键触发事件
+           if (args != null) {
+               if (combinedArgs == null) {
+                   combinedArgs = new Bundle();
+               }
+               combinedArgs.putAll(args);
+           }
    
-   - `NavigatorProvider`代理管理导航操作
+           if (destId == 0 && navOptions != null && navOptions.getPopUpTo() != -1) {
+               popBackStack(navOptions.getPopUpTo(), navOptions.isPopUpToInclusive());
+               return;
+           }
    
-  
+           if (destId == 0) {
+               throw new IllegalArgumentException("Destination id == 0 can only be used"
+                       + " in conjunction with a valid navOptions.popUpTo");
+           }
+   //解析配置文件生成一个新的导航节点利用该节点去进出fragment堆栈
+           NavDestination node = findDestination(destId);
+           if (node == null) {
+               final String dest = NavDestination.getDisplayName(mContext, destId);
+               if (navAction != null) {
+                   throw new IllegalArgumentException("Navigation destination " + dest
+                           + " referenced from action "
+                           + NavDestination.getDisplayName(mContext, resId)
+                           + " cannot be found from the current destination " + currentNode);
+               } else {
+                   throw new IllegalArgumentException("Navigation action/destination " + dest
+                           + " cannot be found from the current destination " + currentNode);
+               }
+           }
+           navigate(node, combinedArgs, navOptions, navigatorExtras);
+       }
+   ```
+
+实现生命周期的感知以及后退键的事件派发管理在于其内部对`LifecycleOwner`、`mLifecycleObserver`运用
+
+```kotlin
+   //设置生命观察者 观测感知生命周期
+	void setLifecycleOwner(@NonNull LifecycleOwner owner) {
+        mLifecycleOwner = owner;
+        mLifecycleOwner.getLifecycle().addObserver(mLifecycleObserver);
+    }
+
+//设置后退事件的分发管理
+    void setOnBackPressedDispatcher(@NonNull OnBackPressedDispatcher dispatcher) {
+        if (mLifecycleOwner == null) {
+            throw new IllegalStateException("You must call setLifecycleOwner() before calling "
+                    + "setOnBackPressedDispatcher()");
+        }
+        // Remove the callback from any previous dispatcher
+        mOnBackPressedCallback.remove();
+        // Then add it to the new dispatcher
+        dispatcher.addCallback(mLifecycleOwner, mOnBackPressedCallback);
+    }
+
+//是否启用后退事件
+    void enableOnBackPressed(boolean enabled) {
+        mEnableOnBackPressedCallback = enabled;
+        updateOnBackPressedCallbackEnabled();
+    }
+
+//用来更新后退事件的
+    private void updateOnBackPressedCallbackEnabled() {
+        mOnBackPressedCallback.setEnabled(mEnableOnBackPressedCallback
+                && getDestinationCountOnBackStack() > 1);
+    }
+```
+
+
+
+
+
 
 ## 总结
 navigation 静态配置的使用时需要注意，name属性应该指向哪个`fragment`、以及navigation配置文件中`startDestination`的是否漏写。
